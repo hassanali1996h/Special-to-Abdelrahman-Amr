@@ -1,48 +1,45 @@
+// script.js
 
-let isAnalyzed = false;
-let originalText = '';
+// تحميل السور من ملف JSON fetch("surahs_full.json") .then(response => response.json()) .then(data => { console.log("✅ تم تحميل السور بنجاح");
 
-document.getElementById("fetchSurah").addEventListener("click", function () {
-  const input = document.getElementById("surahInput").value.trim();
-  if (!input) {
-    alert("يرجى إدخال اسم أو رقم السورة.");
+const surahInput = document.querySelector("#surah-input");
+const displayBtn = document.querySelector("#display-btn");
+const resultDiv = document.querySelector("#result");
+
+function displaySurah() {
+  const value = surahInput.value.trim();
+  if (!value) return;
+
+  let surah = null;
+  // إذا المستخدم كتب رقم
+  if (!isNaN(value)) {
+    const index = parseInt(value);
+    surah = data.find(s => s.index === index);
+  } else {
+    // إذا كتب الاسم
+    surah = data.find(s => s.name === value || s.name.includes(value));
+  }
+
+  if (!surah) {
+    resultDiv.innerHTML = `<p style='color:red;'>❌ لم يتم العثور على السورة</p>`;
     return;
   }
 
-  fetch("surahs_full.json")
-    .then(res => res.json())
-    .then(data => {
-      const entry = data.find(s => s.index == input || s.name == input);
-      if (!entry) {
-        alert("لم يتم العثور على السورة.");
-        return;
-      }
-      originalText = entry.verse || "";
-      document.getElementById("resultArea").textContent = originalText;
+  const html = `
+    <h2>${surah.index} - ${surah.name}</h2>
+    <ol>
+      ${surah.verses.map(v => `<li>${v}</li>`).join("")}
+    </ol>
+  `;
+  resultDiv.innerHTML = html;
+}
 
-      // تحليل تلقائي مباشر بعد الجلب
-      const words = originalText.trim().split(/\s+/);
-      const analyzed = words.map((w, i) => `${w} [${i + 1}]`).join(" ");
-      document.getElementById("resultArea").textContent = analyzed;
-      isAnalyzed = true;
-    })
-    .catch(err => {
-      alert("حدث خطأ أثناء جلب السورة.");
-      console.error(err);
-    });
+displayBtn.addEventListener("click", displaySurah);
+
+// السماح بالضغط على Enter
+surahInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") displaySurah();
 });
 
-document.getElementById("toggleWordAnalysis").addEventListener("click", () => {
-  const resultArea = document.getElementById("resultArea");
-  if (!originalText) return;
+}) .catch(error => { console.error("❌ فشل تحميل السور", error); });
 
-  if (isAnalyzed) {
-    resultArea.textContent = originalText;
-    isAnalyzed = false;
-  } else {
-    const words = originalText.trim().split(/\s+/);
-    const analyzed = words.map((w, i) => `${w} [${i + 1}]`).join(" ");
-    resultArea.textContent = analyzed;
-    isAnalyzed = true;
-  }
-});
